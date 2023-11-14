@@ -25,12 +25,16 @@ public class JsonCustom {
         Children user = new Children(1, "Thanh", "25", "Dien Bien Phu", true, uniChar, listsName, hobbieList);
         Children user01 = new Children(1, "Thanh", "25", "Dien Bien Phu", true, uniChar, hobbieList);
         Gson gson = new Gson();
+        // Call Gson libary to parse object format
         System.out.println("Gson Parser: " + gson.toJson(user));
+
+        // Call custom libary to parse object format
         System.out.println("Custom Parser: " + parseToJson(user));
 
 
     }
 
+    // Function excuted format Json
     private static Object parseToJson(Object object)
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 
@@ -52,29 +56,49 @@ public class JsonCustom {
         return stringBuilder;
     }
 
+    // Function used for iterating object
     private static Object iterateMap(Object object)
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        // Init linkedhashmap
         LinkedHashMap<String, Object> linkedHashMap = new LinkedHashMap<String, Object>();
+        // Returns an array of Field objects reflecting all the fields declared by the class
         Field[] fields = object.getClass().getDeclaredFields();
+        // Init StringBuilder s
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
+            // Get index fields based on i
             String key = fields[i].getName();
+            //Returns a Field object that reflects the specified declared field of the class
             Field privateField = object.getClass().getDeclaredField(key);
+            // Provide accessible for private field
             privateField.setAccessible(Boolean.TRUE);
+           //Returns the value of the field represented by this Field, on the specified object
             Object value = (Object) privateField.get(object);
+            // Init valueFilter variable
             Object valueFilter = "";
 
+            // Checking Type of specific field is not char type and is primitive type
             if ((object.getClass().getDeclaredField(key).getType() != char.class)
                     && (object.getClass().getDeclaredField(key).getType().isPrimitive())) {
+                // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
                 valueFilter = filterType(AppConstants.TYPE_NUMBER, value, "");
-            } else if (object.getClass().getDeclaredField(key).getType().getSimpleName().equals("List")) {
+            }
+            // Checking type of specific field is List type
+            else if (object.getClass().getDeclaredField(key).getType().getSimpleName().equals("List")) {
+                // Get Generic Type value of specific filed. Ex: java.util.List<java.lang.String> or java.util.List<java.lang.Children>
                 String tmp = String.valueOf(object.getClass().getDeclaredField(key).getGenericType());
+                // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition with generic type
                 valueFilter = filterType(AppConstants.TYPE_ARRAY, value, tmp);
-            } else {
+            }
+            // Default String case
+            else {
+                // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
                 valueFilter = filterType(AppConstants.TYPE_STRING, value, "");
             }
 
+            // Put key field as key and valueFilter as value into linkedHashMap
             linkedHashMap.put(key, valueFilter);
+            // Implement logic to remove the unnecessary value in StringBuilder and proceed to append
             s.delete(0, s.length());
             s.append(builderMap(linkedHashMap));
         }
@@ -82,14 +106,19 @@ public class JsonCustom {
     }
 
 
+    // Method  used for iterating List String
     private static Object interateArray(Object value)
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         Object result = "";
         StringBuilder striBuilder = new StringBuilder();
+        // Convert Object to String
         String tmp = value.toString();
+        // Sub String first index and last index to get value
         String tmpCutter = tmp.substring(1, tmp.length() - 1);
+        // Split by quote
         String[] strings = tmpCutter.split(",");
         Object tmpResult = "";
+        // Init flag with count = 1
         int count = 1;
         for (int i = 0; i < strings.length; i++) {
             if (count == strings.length) {
@@ -105,6 +134,7 @@ public class JsonCustom {
 
     }
 
+    // Need to be maintained. All of the codes bellow are not correct
     public static void iterateListObject(Object object) throws NoSuchFieldException, IllegalAccessException {
         System.out.println(object);
         String listObject = object.toString();
@@ -134,17 +164,23 @@ public class JsonCustom {
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         Object result = "";
         StringBuilder striBuilder = new StringBuilder();
+        // Switch case with 3 condition: String, Number, Array
         switch (type) {
             case "String":
+                // With String case, just append value
                 result = striBuilder.append("\"" + value + "\"");
                 break;
             case "Number":
+                // With Number case, assign directly to result value
                 result = value;
                 break;
             case "Array":
+                // Checking condition with List String
                 if (condition.equals("java.util.List<java.lang.String>")) {
                     result = interateArray(value);
-                } else {
+                }
+                // Default Condition with List Object
+                else {
                     iterateListObject(value);
                 }
 
