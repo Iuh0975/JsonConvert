@@ -96,7 +96,7 @@ public class JsonCustom {
             valueFilter = filterType(AppConstants.TYPE_NUMBER, value, "");
         }
         // Checking type of specific field is List type
-        else if (privateField.getType().getSimpleName().equals("List")) {
+        else if (privateField.getType().getSimpleName().equals(AppConstants.TYPE_LIST)) {
             // Get Generic Type value of specific filed. Ex: java.util.List<java.lang.String> or java.util.List<java.lang.Children>
             String tmp = String.valueOf(privateField.getGenericType());
             // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition with generic type
@@ -127,7 +127,7 @@ public class JsonCustom {
                 break;
             case "Array":
                 // Checking condition with List String
-                if (condition.equals("java.util.List<java.lang.String>")) {
+                if (condition.equals(AppConstants.TYPE_LIST_GENERIC)) {
                     result = iterateArray(value);
                 }
                 // Default Condition with List Object
@@ -166,7 +166,7 @@ public class JsonCustom {
         StringBuilder s = new StringBuilder();
         s.append("[");
         for (Object obj : objectList) {
-            if (obj.getClass().getSimpleName().equals("Integer")) {
+            if (obj.getClass().getSimpleName().equals(AppConstants.TYPE_INTEGER)) {
                 s.append(obj);
             } else {
                 s.append(iterateMap(obj));

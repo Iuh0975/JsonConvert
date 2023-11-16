@@ -10,4 +10,10 @@ public class AppConstants {
 
     public static final  String TYPE_STRING = "String";
 
+    public static final String TYPE_LIST= "List";
+
+    public static final String TYPE_LIST_GENERIC = "java.util.List<java.lang.String>";
+
+    public static final String TYPE_INTEGER = "Integer";
+
 }
