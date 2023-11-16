@@ -18,7 +18,6 @@ public class JsonCustom {
         listsName.add(2);
         listsName.add(3);
 
-
         List<Hobbie> hobbieList = new ArrayList<>();
         hobbieList.add(new Hobbie("Chocolate", "US", 10));
         hobbieList.add(new Hobbie("Socola", "UK", 20));
@@ -68,7 +67,6 @@ public class JsonCustom {
             // Initiating the key is unnecessary
             String keyUn = "";
 
-
             // Call method to filter elements in an object
             try {
                 valueFilter = filterTypeObject(value, privateField, valueFilter);
@@ -76,7 +74,6 @@ public class JsonCustom {
                 System.out.println(e.getMessage());
                 keyUn = key;
             }
-
 
             // Put key field as key and valueFilter as value into linkedHashMap
             linkedHashMap.put(key, valueFilter);
@@ -110,9 +107,7 @@ public class JsonCustom {
             // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
             valueFilter = filterType(AppConstants.TYPE_STRING, value, "");
         }
-
         return valueFilter;
-
     }
 
     private static Object filterType(String type, Object value, String condition)
@@ -161,7 +156,6 @@ public class JsonCustom {
         striBuilder.deleteCharAt(striBuilder.length() - 1);
         striBuilder.append("]");
         return striBuilder;
-
     }
 
     // Iterate List Object
