@@ -17,7 +17,7 @@ public class JsonCustom {
         listsName.add(1);
         listsName.add(2);
         listsName.add(3);
-        
+
 
         List<Hobbie> hobbieList = new ArrayList<>();
         hobbieList.add(new Hobbie("Chocolate", "US", 10));
@@ -41,20 +41,6 @@ public class JsonCustom {
         return iterateMap(object);
     }
 
-    private static Object builderMap(Map<String, Object> linkedHashMap) {
-        Set<String> keys = linkedHashMap.keySet();
-        StringBuilder stringBuilder = new StringBuilder("{");
-        int count = 1;
-        for (String key : keys) {
-            if (count == keys.size()) {
-                stringBuilder.append("\"" + key + "\"" + ":" + linkedHashMap.get(key) + "}");
-            } else {
-                stringBuilder.append("\"" + key + "\"" + ":" + linkedHashMap.get(key) + ",");
-                count++;
-            }
-        }
-        return stringBuilder;
-    }
 
     // Function used for iterating object
     private static Object iterateMap(Object object)
@@ -79,18 +65,24 @@ public class JsonCustom {
             // Init valueFilter variable
             Object valueFilter = "";
 
+            // Initiating the key is unnecessary
+            String keyUn = "";
+
 
             // Call method to filter elements in an object
             try {
                 valueFilter = filterTypeObject(value, privateField, valueFilter);
             } catch (NullPointerException e) {
                 System.out.println(e.getMessage());
-                String keyUn = key;
+                keyUn = key;
             }
 
 
             // Put key field as key and valueFilter as value into linkedHashMap
             linkedHashMap.put(key, valueFilter);
+
+            // Remove the key if it has a null value
+            linkedHashMap.remove(keyUn);
             // Implement logic to remove the unnecessary value in StringBuilder and proceed to append
             s.delete(0, s.length());
             s.append(builderMap(linkedHashMap));
@@ -101,9 +93,7 @@ public class JsonCustom {
     private static Object filterTypeObject(Object value, Field privateField, Object valueFilter) throws NoSuchFieldException, IllegalAccessException {
 
         // Checking Type of specific field is not char type and is primitive type
-        if (value == null) {
-            System.out.println("Null pointer exception");
-        } else if ((privateField.getType() != char.class)
+        if ((privateField.getType() != char.class)
                 && (privateField.getType().isPrimitive() || (privateField.getType().equals(Boolean.class)))) {
             // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
             valueFilter = filterType(AppConstants.TYPE_NUMBER, value, "");
@@ -143,25 +133,23 @@ public class JsonCustom {
             case "Array":
                 // Checking condition with List String
                 if (condition.equals("java.util.List<java.lang.String>")) {
-                    result = interateArray(value);
+                    result = iterateArray(value);
                 }
                 // Default Condition with List Object
                 else {
                     result = iterateListObject(value);
                 }
-
                 break;
         }
         return result;
     }
-
 
     private static void processStringType(Object value, StringBuilder striBuilder) {
         striBuilder.append("\"" + value + "\"");
     }
 
     // Method  used for iterating List String.
-    private static Object interateArray(Object value)
+    private static Object iterateArray(Object value)
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         List<String> stringList = (ArrayList<String>) value;
         StringBuilder striBuilder = new StringBuilder();
@@ -176,7 +164,7 @@ public class JsonCustom {
 
     }
 
-    // Need to be maintained. All of the codes bellow are not correct
+    // Iterate List Object
     public static Object iterateListObject(Object object) throws NoSuchFieldException, IllegalAccessException {
         System.out.println(object);
         List<Object> objectList = (ArrayList<Object>) object;
@@ -196,6 +184,20 @@ public class JsonCustom {
         return s;
     }
 
-
+    // The method used for constructing a JSON custom structure where the first and last indices are enclosed in quotes
+    private static Object builderMap(Map<String, Object> linkedHashMap) {
+        Set<String> keys = linkedHashMap.keySet();
+        StringBuilder stringBuilder = new StringBuilder("{");
+        int count = 1;
+        for (String key : keys) {
+            if (count == keys.size()) {
+                stringBuilder.append("\"" + key + "\"" + ":" + linkedHashMap.get(key) + "}");
+            } else {
+                stringBuilder.append("\"" + key + "\"" + ":" + linkedHashMap.get(key) + ",");
+                count++;
+            }
+        }
+        return stringBuilder;
+    }
 }
 
