@@ -23,8 +23,9 @@ public class Children {
 
     private List<Hobbie> hobbieList;
 
+    private List<Integer> integerList;
 
-    public Children(int id, String name, String age, String location, Boolean sex, Character nickName, List<Hobbie> hobbieList) {
+    public Children(int id, String name, String age, String location, Boolean sex, Character nickName, List<Hobbie> hobbieList, List<Integer> integerList) {
         this.id = id;
         this.name = name;
         this.age = age;
@@ -32,5 +33,6 @@ public class Children {
         this.sex = sex;
         this.nickName = nickName;
         this.hobbieList = hobbieList;
+        this.integerList = integerList;
     }
 }

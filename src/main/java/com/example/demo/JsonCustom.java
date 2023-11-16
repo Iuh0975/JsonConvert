@@ -13,23 +13,23 @@ public class JsonCustom {
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 
         Character uniChar = '\u039A';
-        List<String> listsName = new ArrayList<String>();
-        listsName.add("John");
-        listsName.add("Wick");
-        listsName.add("Lada");
+        List<Integer> listsName = new ArrayList<Integer>();
+        listsName.add(1);
+        listsName.add(2);
+        listsName.add(3);
+        
 
         List<Hobbie> hobbieList = new ArrayList<>();
         hobbieList.add(new Hobbie("Chocolate", "US", 10));
         hobbieList.add(new Hobbie("Socola", "UK", 20));
 
-        Children user = new Children(1, "Thanh", "25", "Dien Bien Phu", true, uniChar, listsName, hobbieList);
-        Children user01 = new Children(1, "Thanh", "25", "Dien Bien Phu", true, uniChar, hobbieList);
+        Children user03 = new Children(1, "Thanh", "25", "Dien Bien Phu", true, uniChar, hobbieList, listsName);
         Gson gson = new Gson();
         // Call Gson libary to parse object format
-        System.out.println("Gson Parser: " + gson.toJson(user));
+        System.out.println("Gson Parser: " + gson.toJson(user03));
 
         // Call custom libary to parse object format
-        System.out.println("Custom Parser: " + parseToJson(user));
+        System.out.println("Custom Parser: " + parseToJson(user03));
 
 
     }
@@ -59,12 +59,13 @@ public class JsonCustom {
     // Function used for iterating object
     private static Object iterateMap(Object object)
             throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-        // Init linkedhashmap
+        // Init linkedHashmap
         LinkedHashMap<String, Object> linkedHashMap = new LinkedHashMap<String, Object>();
         // Returns an array of Field objects reflecting all the fields declared by the class
         Field[] fields = object.getClass().getDeclaredFields();
         // Init StringBuilder s
         StringBuilder s = new StringBuilder();
+
         for (int i = 0; i < fields.length; i++) {
             // Get index fields based on i
             String key = fields[i].getName();
@@ -72,29 +73,21 @@ public class JsonCustom {
             Field privateField = object.getClass().getDeclaredField(key);
             // Provide accessible for private field
             privateField.setAccessible(Boolean.TRUE);
-           //Returns the value of the field represented by this Field, on the specified object
+            //Returns the value of the field represented by this Field, on the specified object
             Object value = (Object) privateField.get(object);
+
             // Init valueFilter variable
             Object valueFilter = "";
 
-            // Checking Type of specific field is not char type and is primitive type
-            if ((object.getClass().getDeclaredField(key).getType() != char.class)
-                    && (object.getClass().getDeclaredField(key).getType().isPrimitive())) {
-                // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
-                valueFilter = filterType(AppConstants.TYPE_NUMBER, value, "");
+
+            // Call method to filter elements in an object
+            try {
+                valueFilter = filterTypeObject(value, privateField, valueFilter);
+            } catch (NullPointerException e) {
+                System.out.println(e.getMessage());
+                String keyUn = key;
             }
-            // Checking type of specific field is List type
-            else if (object.getClass().getDeclaredField(key).getType().getSimpleName().equals("List")) {
-                // Get Generic Type value of specific filed. Ex: java.util.List<java.lang.String> or java.util.List<java.lang.Children>
-                String tmp = String.valueOf(object.getClass().getDeclaredField(key).getGenericType());
-                // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition with generic type
-                valueFilter = filterType(AppConstants.TYPE_ARRAY, value, tmp);
-            }
-            // Default String case
-            else {
-                // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
-                valueFilter = filterType(AppConstants.TYPE_STRING, value, "");
-            }
+
 
             // Put key field as key and valueFilter as value into linkedHashMap
             linkedHashMap.put(key, valueFilter);
@@ -105,59 +98,31 @@ public class JsonCustom {
         return s;
     }
 
+    private static Object filterTypeObject(Object value, Field privateField, Object valueFilter) throws NoSuchFieldException, IllegalAccessException {
 
-    // Method  used for iterating List String
-    private static Object interateArray(Object value)
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-        Object result = "";
-        StringBuilder striBuilder = new StringBuilder();
-        // Convert Object to String
-        String tmp = value.toString();
-        // Sub String first index and last index to get value
-        String tmpCutter = tmp.substring(1, tmp.length() - 1);
-        // Split by quote
-        String[] strings = tmpCutter.split(",");
-        Object tmpResult = "";
-        // Init flag with count = 1
-        int count = 1;
-        for (int i = 0; i < strings.length; i++) {
-            if (count == strings.length) {
-                tmpResult = striBuilder.append('"' + strings[i].trim() + '"');
-            } else {
-                tmpResult = striBuilder.append('"' + strings[i].trim() + '"' + ",");
-                count++;
-            }
-
+        // Checking Type of specific field is not char type and is primitive type
+        if (value == null) {
+            System.out.println("Null pointer exception");
+        } else if ((privateField.getType() != char.class)
+                && (privateField.getType().isPrimitive() || (privateField.getType().equals(Boolean.class)))) {
+            // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
+            valueFilter = filterType(AppConstants.TYPE_NUMBER, value, "");
         }
-        result = "[" + tmpResult + "]";
-        return result;
-
-    }
-
-    // Need to be maintained. All of the codes bellow are not correct
-    public static void iterateListObject(Object object) throws NoSuchFieldException, IllegalAccessException {
-        System.out.println(object);
-        String listObject = object.toString();
-        String[] s = listObject.split("[\\\\(||\\\\)]");
-        List tmpList = new ArrayList();
-
-        for (int i = 0; i < s.length; i++) {
-            if (i % 2 == 0) {
-                System.out.println("Skip Old Number");
-            } else {
-                tmpList.add(s[i]);
-            }
+        // Checking type of specific field is List type
+        else if (privateField.getType().getSimpleName().equals("List")) {
+            // Get Generic Type value of specific filed. Ex: java.util.List<java.lang.String> or java.util.List<java.lang.Children>
+            String tmp = String.valueOf(privateField.getGenericType());
+            // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition with generic type
+            valueFilter = filterType(AppConstants.TYPE_ARRAY, value, tmp);
         }
-        System.out.println(tmpList);
-
-        StringBuilder stringBuilder = new StringBuilder("[");
-
-        for (int k = 0; k < tmpList.size(); k++) {
-            System.out.println(tmpList.get(k));
-            stringBuilder.append(tmpList.get(k));
+        // Default String case
+        else {
+            // Call filterType function with 3 parameter: TYPE_NUMBER, value need to passed, condition
+            valueFilter = filterType(AppConstants.TYPE_STRING, value, "");
         }
 
-        stringBuilder.append("]");
+        return valueFilter;
+
     }
 
     private static Object filterType(String type, Object value, String condition)
@@ -168,7 +133,8 @@ public class JsonCustom {
         switch (type) {
             case "String":
                 // With String case, just append value
-                result = striBuilder.append("\"" + value + "\"");
+                processStringType(value, striBuilder);
+                result = striBuilder;
                 break;
             case "Number":
                 // With Number case, assign directly to result value
@@ -181,12 +147,53 @@ public class JsonCustom {
                 }
                 // Default Condition with List Object
                 else {
-                    iterateListObject(value);
+                    result = iterateListObject(value);
                 }
 
                 break;
         }
         return result;
+    }
+
+
+    private static void processStringType(Object value, StringBuilder striBuilder) {
+        striBuilder.append("\"" + value + "\"");
+    }
+
+    // Method  used for iterating List String.
+    private static Object interateArray(Object value)
+            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        List<String> stringList = (ArrayList<String>) value;
+        StringBuilder striBuilder = new StringBuilder();
+        striBuilder.append("[");
+        for (String i : stringList) {
+            processStringType(i, striBuilder);
+            striBuilder.append(",");
+        }
+        striBuilder.deleteCharAt(striBuilder.length() - 1);
+        striBuilder.append("]");
+        return striBuilder;
+
+    }
+
+    // Need to be maintained. All of the codes bellow are not correct
+    public static Object iterateListObject(Object object) throws NoSuchFieldException, IllegalAccessException {
+        System.out.println(object);
+        List<Object> objectList = (ArrayList<Object>) object;
+        System.out.println(object);
+        StringBuilder s = new StringBuilder();
+        s.append("[");
+        for (Object obj : objectList) {
+            if (obj.getClass().getSimpleName().equals("Integer")) {
+                s.append(obj);
+            } else {
+                s.append(iterateMap(obj));
+            }
+            s.append(",");
+        }
+        s.deleteCharAt(s.length() - 1);
+        s.append("]");
+        return s;
     }
 
 
